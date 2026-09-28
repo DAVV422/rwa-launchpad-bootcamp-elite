@@ -81,3 +81,49 @@ fn test_invest_not_whitelisted() {
     env.mock_all_auths();
     client.invest(&investor, &500);
 }
+
+#[test]
+fn test_invest_variation_gate_minimum_amount() {
+    let env = Env::default();
+    let (admin, payment_token, _contract_id, client) = setup_with_payment_token(&env);
+    let investor = Address::generate(&env);
+
+    let token_admin = StellarAssetClient::new(&env, &payment_token);
+    let token = TokenClient::new(&env, &payment_token);
+    token_admin.mint(&investor, &1_000);
+
+    env.mock_all_auths();
+    client.set_whitelist(&admin, &investor, &true);
+
+    // Inversión de 100 falla con AmountTooLow (#7)
+    let res = client.try_invest(&investor, &100);
+    assert_eq!(
+        res,
+        Err(Ok(soroban_sdk::Error::from_contract_error(
+            Error::AmountTooLow as u32
+        )))
+    );
+
+    // Inversión de 500 funciona
+    let minted = client.invest(&investor, &500);
+    assert_eq!(minted, 5);
+    assert_eq!(client.balance(&investor), 5);
+    assert_eq!(token.balance(&investor), 500);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #7)")]
+fn test_invest_amount_too_low_panics() {
+    let env = Env::default();
+    let (admin, payment_token, _contract_id, client) = setup_with_payment_token(&env);
+    let investor = Address::generate(&env);
+
+    let token_admin = StellarAssetClient::new(&env, &payment_token);
+    token_admin.mint(&investor, &1_000);
+
+    env.mock_all_auths();
+    client.set_whitelist(&admin, &investor, &true);
+
+    client.invest(&investor, &100);
+}
+

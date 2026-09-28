@@ -1,0 +1,18 @@
+# SEP-1 template: complete these fields for your RWA Launchpad asset identity.
+# Publish this file on your domain (e.g. https://yourdomain.com/.well-known/stellar.toml)
+
+VERSION = "1.0.0"
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+
+[[CURRENCIES]]
+code = "RWA-D1"
+issuer = "GDI756WFKEPBRO7KCNTNZJRN7HYBJ7UZNDWE2E3GKM6LGIBCAYXLTBPP"
+status = "live"
+display_decimals = 2
+name = "RWA-D3"
+desc = "RWA token for Stellar Bootcamp Day 3"
+conditions = "RWA token for Stellar Bootcamp Day 3"
+
+[DOCUMENTATION]
+ORG_NAME = "Stellar Elite Bootcamp - Diego V"
+ORG_OFFICIAL_EMAIL = "diegoalberto42216@gmail.com"

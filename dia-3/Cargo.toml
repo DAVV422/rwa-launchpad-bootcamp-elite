@@ -1,18 +1,18 @@
 [package]
 name = "rwa-launchpad-dia-3"
-version = "0.1.0"
-edition = "2021"
-publish = false
+version = "1.0.0"
+edition = "2024"
+publish = true
 
 [lib]
 crate-type = ["cdylib"]
-doctest = false
+doctest = true
 
 [dependencies]
-soroban-sdk = "26"
+soroban-sdk = "25"
 
 [dev-dependencies]
-soroban-sdk = { version = "26", features = ["testutils"] }
+soroban-sdk = { version = "25", features = ["testutils"] }
 
 [profile.release]
 opt-level = "z"
