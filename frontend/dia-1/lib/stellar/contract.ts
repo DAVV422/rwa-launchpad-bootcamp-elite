@@ -8,6 +8,7 @@ import {
   xdr,
 } from "@stellar/stellar-sdk";
 import { Api, Server, assembleTransaction } from "@stellar/stellar-sdk/rpc";
+import { TransactionBuilder as BaseTransactionBuilder } from "@stellar/stellar-base";
 import { config, isContractConfigured } from "@/lib/config";
 import { toContractCallError } from "@/lib/errors";
 import { networkPassphrase } from "@/lib/stellar/network";
@@ -157,14 +158,15 @@ async function invoke(
     );
   }
 
-  const prepared = assembleTransaction(built, simulated).build();
+  const rawTx = BaseTransactionBuilder.fromXDR(built.toXDR(), passphrase);
+  const prepared = assembleTransaction(rawTx, simulated).build();
   const signedXdr = await signTransaction(prepared.toXDR(), {
     networkPassphrase: passphrase,
     address: signerAddress,
   });
 
-  const signedTx = TransactionBuilder.fromXDR(signedXdr, passphrase);
-  const send = await server.sendTransaction(signedTx);
+  const signedTx = BaseTransactionBuilder.fromXDR(signedXdr, passphrase);
+  const send = await server.sendTransaction(signedTx as any);
 
   if (send.status === "ERROR") {
     throw new Error(

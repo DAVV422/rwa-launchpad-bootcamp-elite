@@ -8,6 +8,7 @@ import {
   xdr,
 } from "@stellar/stellar-sdk";
 import { Api, Server, assembleTransaction } from "@stellar/stellar-sdk/rpc";
+import { TransactionBuilder as BaseTransactionBuilder } from "@stellar/stellar-base";
 import { config, isContractConfigured } from "@/lib/config";
 import { toContractCallError } from "@/lib/errors";
 import { networkPassphrase } from "@/lib/stellar/network";
@@ -72,20 +73,20 @@ function assetInfoScVal(asset: {
       val: symbolScVal(asset.name),
     }),
     new xdr.ScMapEntry({
-      key: symbolScVal("total_supply"),
-      val: i128ScVal(asset.total_supply),
-    }),
-    new xdr.ScMapEntry({
-      key: symbolScVal("price_per_unit"),
-      val: i128ScVal(asset.price_per_unit),
+      key: symbolScVal("paused"),
+      val: boolScVal(asset.paused),
     }),
     new xdr.ScMapEntry({
       key: symbolScVal("payment_token"),
       val: addressScVal(asset.payment_token),
     }),
     new xdr.ScMapEntry({
-      key: symbolScVal("paused"),
-      val: boolScVal(asset.paused),
+      key: symbolScVal("price_per_unit"),
+      val: i128ScVal(asset.price_per_unit),
+    }),
+    new xdr.ScMapEntry({
+      key: symbolScVal("total_supply"),
+      val: i128ScVal(asset.total_supply),
     }),
   ]);
 }
@@ -187,14 +188,15 @@ async function invoke(
     );
   }
 
-  const prepared = assembleTransaction(built, simulated).build();
+  const rawTx = BaseTransactionBuilder.fromXDR(built.toXDR(), passphrase);
+  const prepared = assembleTransaction(rawTx, simulated).build();
   const signedXdr = await signTransaction(prepared.toXDR(), {
     networkPassphrase: passphrase,
     address: signerAddress,
   });
 
-  const signedTx = TransactionBuilder.fromXDR(signedXdr, passphrase);
-  const send = await server.sendTransaction(signedTx);
+  const signedTx = BaseTransactionBuilder.fromXDR(signedXdr, passphrase);
+  const send = await server.sendTransaction(signedTx as any);
 
   if (send.status === "ERROR") {
     throw new Error(
